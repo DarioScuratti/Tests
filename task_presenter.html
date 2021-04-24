@@ -1,0 +1,183 @@
+{
+  template: `
+      <!-- This template use https://bootstrap-vue.js.org/ -->
+
+      <b-row v-if="pybossa.userProgressInPercent < 100">
+
+        <!-- Form -->
+        <b-col md="6" class="mt-4 mt-md-0 order-2 order-md-1">
+
+          <b-form-group :key="key" v-for="(question, key) in questions" :label="question.question" label-size="lg" v-if="mask[key] === '1'">
+
+            <b-form-radio-group
+              v-if="question.type==='radio'"
+              v-model="answers[key]"
+              buttons
+              button-variant="outline-primary"
+              :options="question.answers">
+            </b-form-radio-group>
+            <b-form-checkbox-group
+              v-if="question.type==='check'"
+              v-model="answers[key]"
+              :options="question.answers">
+            </b-form-checkbox-group>
+            <div class="conditions" style="display:none">
+          		<div v-if="answers[0] === 'Yes'">{{mask[1] = '1'}}</div>
+              	<div v-else>{{mask[1] = '0'}}{{[1,2,3,5,6,7,8,9,10,11].forEach(v => answers[v] = 'Not answered')}}{{answers[4]=[]}}</div>
+          		<div v-if="answers[1] === 'Yes' || answers[1] === 'Cannot tell'">{{mask[2] = '1'}}</div>
+              	<div v-else>{{mask[2] = '0'}}{{[2,3,5,6,7,8,9,10,11].forEach(v => answers[v] = 'Not answered')}}{{answers[4]=[]}}</div>
+          		<div v-if="answers[2] === 'Yes'">{{[3,6,8,10,11].forEach(v => mask[v] = '1')}}</div>
+              	<div v-else>{{[3,6,8,10,11].forEach(v => mask[v] = '0')}}{{[3,5,6,7,8,9,10,11].forEach(v => answers[v] = 'Not answered')}}{{answers[4]=[]}}</div>
+              	<div v-if="answers[3] === 'Yes' || answers[3] === 'Some of them'">{{[4,5].forEach(v => mask[v] = '1')}}</div>
+              	<div v-else>{{[4,5].forEach(v => mask[v] = '0')}}{{answers[4]=[]}}{{answers[5]="Not answered"}}</div>
+          		<div v-if="answers[6] >= '2' && answers[6] != 'Not answered'">{{mask[7] = '1'}}</div>
+              	<div v-else>{{mask[7] = '0'}}{{answers[7]='Not answered'}}</div>
+          		<div v-if="answers[8] === 'Yes'">{{mask[9] = '1'}}</div>
+              	<div v-else>{{mask[9] = '0'}}{{answers[8]='Not answered'}}</div>
+            </div>
+
+          </b-form-group>
+
+          <div class="alert alert-info" role="alert" v-if="mask[11]==='1'"><strong>Country/ Territory: {{taskInfo.country_or_territory}}</strong></div>
+          <b-btn @click="submit" variant="success"> {{ $t('submit') }}</b-btn>
+          <b-btn @click="skip" variant="success"> {{ $t('skip') }}</b-btn>
+
+          <!-- Form validation errors -->
+          <b-alert variant="danger" v-model="showAlert" class="mt-2" dismissible>
+          {{ $t('template-editor-text-8') }}
+          </b-alert>
+
+          <!-- User progress -->
+          <!-- <p class="mt-2">You are working now on task: <b-badge variant="warning">{{ task.id }}</b-badge></p>-->
+          <p class="mt-2"> {{$t('template-editor-text-2')}}: <b-badge variant="primary">{{ pybossa.userProgress.done }}</b-badge>  {{$t('template-editor-text-2a')}} <b-badge variant="primary">{{ pybossa.userProgress.total }}</b-badge> {{$t('template-editor-text-3')}}</p>
+
+          <b-progress :value="pybossa.userProgressInPercent" :max="100"></b-progress>
+        </b-col>
+
+        <!-- Tweet -->
+        <b-col md="6" class="order-1 order-md-2">
+
+          <!-- Author name and tweet text -->
+          <h5>Tweet</h5>
+          <p><i>{{ taskInfo.full_text }}</i></p>
+          <p v-if="taskInfo.country_or_territory != '-'">Country/ Territory: {{taskInfo.country_or_territory}}</p>
+
+          <!-- Display urls if available -->
+          <ul>
+            <li><a :href="taskInfo.url" target="_blank">{{ taskInfo.url }}</a></li>
+          </ul>
+
+          <!-- Display picture if available -->
+          <div class="text-center">
+            <div v-if="pybossa.taskLoaded">
+              <b-img fluid-grow :src="taskInfo.media_url" class="shadow" style="min-height: 120px; background-color: grey" :alt="$t('template-editor-text-4')"></b-img>
+            </div>
+            <b-spinner v-else style="width: 4rem; height: 4rem;" variant="primary" :label="$t('template-editor-text-4')"></b-spinner>
+          </div>
+          <table v-if="answers[3] === 'Yes'" class="table table-borderless">
+          	<thead>
+            	<tr>
+                	<th scope="col">Surgical</th>
+                    <th scope="col">FP-2</th>
+                	<th scope="col">FP-3</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><img src="https://drive.google.com/uc?export=view&id=1If8uFQz6lxd8NprVeLKZlNotgTL2Pc95" class="img-fluid" width="180" height="180"></td>
+                    <td><img src="https://drive.google.com/uc?export=view&id=1AcsOGPUrpQCK44GX2JderRMT_lFgjDqz" class="img-fluid" width="180" height="180"></td>
+                    <td><img src="https://drive.google.com/uc?export=view&id=1Pv8OF9GKPbi327tPQZKMXnQmqRGk-37U" class="img-fluid" width="180" height="180"></td>
+                </tr>
+            </tbody>
+          </table>
+
+        </b-col>
+      </b-row>
+
+      <!-- Task end message -->
+      <b-row v-else>
+        <b-col>
+          <b-jumbotron :header="$t('template-editor-text-2')" :lead="$t('template-editor-text-3')"></b-jumbotron>
+        </b-col>
+      </b-row>`,
+
+  data: () => {
+        return {"mask":["1","0","0","0","0","0","0","0","0","0","0","0"],
+                "questions":[
+                    {"question":"Is this a photo (rather than a cartoon, graph, meme, etc.)? ",
+                     "answers":["Yes", "No", "Not sure"],
+                     "type": "radio"},
+                    {"question":"Does it look like it has been taken recently (in the last two months)?",
+                     "answers":["Yes", "No", "Cannot tell"],
+                     "type": "radio"},
+                    {"question":"Are there people in this image?",
+                     "answers":["Yes","No","Not sure"],
+                     "type": "radio"},
+					{"question":"Are the people wearing masks?",
+                     "answers":["Yes", "Some of them", "No", "Cannot tell"],
+                     "type": "radio"},
+                    {"question":"If so, which type?",
+                     "answers":["Scarf", "Cloth", "Surgical", "FP2", "FP3", "Gasmask", "Other", "Cannot tell"],
+                     "type": "check"},
+                    {"question":"Are the people wearing the mask correctly?",
+                     "answers":["Yes", "No", "Only some of them", "Cannot tell", "Not sure"],
+                     "type": "radio"},
+                    {"question":"How many people are there in the image?",
+                     "answers":["1","2","3","4","5 or more"],
+                     "type": "radio"},
+                    {"question":"Are they respecting social distance?",
+                     "answers":["Yes","No","Cannot tell"],
+                     "type": "radio"},
+                    {"question":"Are they in a public place (shops, outdoors, …)?",
+                     "answers":["Yes", "No", "Not sure"],
+                     "type": "radio"},
+                    {"question":"If they are in a public place, what type?",
+                     "answers":["Street/Square", "Park", "Shop", "Hospital", "Outdoors", "Other", "Cannot tell"],
+                     "type": "radio"},
+                    {"question":"What are the people doing?",
+                     "answers":["Socialising", "Exercising", "Shopping", "Queuing", "Volunteering", "Protesting", "Working", "Other", "Cannot tell"],
+                     "type": "radio"},
+                    {"question":"We have associated a country or territory with this image. Do you think the picture was likely taken in this location?",
+                     "answers":["Yes", "Maybe", "Surely not", "Cannot tell"],
+                     "type": "radio"}],
+                "answers":[],
+                "showAlert":false}},
+
+  methods: {
+        skip: function(){
+				this.pybossa.saveTask([]),this.showAlert=!1,this.mask = ["1","0","0","0","0","0","0","0","0","0","0","0"],
+                	this.answers=[],this.questions.forEach(function(){
+                                return t.answers.push("Not answered")
+                        })
+                },
+
+        submit: function (){
+			var e=this;
+			this.mask = ["1","0","0","0","0","0","0","0","0","0","0","0"];
+			this.isFormValid()?(this.pybossa.saveTask(this.answers),this.showAlert=!1,this.answers=[],this.questions.forEach(function(){return e.answers.push("Not answered")})):this.showAlert=!0
+        },
+        isFormValid: function (){
+            return (this.answers[0] != "Not answered")&&!this.answers.some(function(e){return void 0===e||null==e})
+        },
+  },
+
+  computed: {
+        task: function (){return this.pybossa.task},
+        taskInfo: function (){return this.task.info},
+  },
+
+  watch: {
+  },
+
+  created: function (){
+      var e=this;
+      this.questions.forEach(function(){
+          return e.answers.push("Not answered")
+      })
+  },
+
+  mounted: function (){this.pybossa.run()},
+
+  props: {"pybossa":{"required":true}}
+
+}
